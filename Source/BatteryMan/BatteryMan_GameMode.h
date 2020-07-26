@@ -14,7 +14,7 @@ class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 {
 	GENERATED_BODY()
 
-		ABatteryMan_GameMode();
+	ABatteryMan_GameMode();
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
