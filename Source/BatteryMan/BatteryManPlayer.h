@@ -17,6 +17,8 @@
 
 #include "BatteryManPlayer.generated.h"
 
+class UBatteryMan_GameInstance;
+
 UCLASS()
 class BATTERYMAN_API ABatteryManPlayer : public ACharacter
 {
@@ -53,7 +55,17 @@ public:
 	TSubclassOf<UUserWidget> Player_Power_Widget_Class;
 	UUserWidget* Player_Power_Widget;
 
+	UPROPERTY(EditAnywhere)
+		float LevelTime;
+
+	UPROPERTY(BlueprintReadOnly)
+		float CurrentTime;
+
 	void RestartGame();
+
+	void TimeLevel();	
+
+	UBatteryMan_GameInstance* Instance;
 
 protected:
 	// Called when the game starts or when spawned

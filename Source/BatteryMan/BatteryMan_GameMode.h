@@ -9,6 +9,7 @@
 /**
  * 
  */
+
 UCLASS()
 class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 {
@@ -28,13 +29,14 @@ class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 	float Spawn_X_Min;
 
 	UPROPERTY(EditAnywhere)
-		float Spawn_X_Max;
+	float Spawn_X_Max;
 
 	UPROPERTY(EditAnywhere)
-		float Spawn_Y_Min;
+	float Spawn_Y_Min;
 
 	UPROPERTY(EditAnywhere)
-		float Spawn_Y_Max;
+	float Spawn_Y_Max;
 
 	void SpawnPlayerRecharge();
+
 };

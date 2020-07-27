@@ -2,6 +2,7 @@
 
 
 #include "BatteryManPlayer.h"
+#include "BatteryMan_GameInstance.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"		//for restarting game
@@ -42,6 +43,7 @@ ABatteryManPlayer::ABatteryManPlayer()
 	// Prevents camera from rotating relative to boom
 	followCamera->bUsePawnControlRotation = false;
 
+	Instance = Cast<UBatteryMan_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	bDead = false;
 	power = 100.0f;
@@ -57,6 +59,13 @@ void ABatteryManPlayer::BeginPlay()
 	
 	Player_Power_Widget = CreateWidget(GetWorld(), Player_Power_Widget_Class);
 	Player_Power_Widget->AddToViewport();
+
+	FTimerHandle LevelTimeHandle;
+	GetWorldTimerManager().SetTimer(
+		LevelTimeHandle, this, &ABatteryManPlayer::TimeLevel, 1.0f, true);
+
+	LevelTime = 60;
+	CurrentTime = LevelTime;
 
 }
 
@@ -142,7 +151,38 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 
 void ABatteryManPlayer::RestartGame()
 {
+	Instance->bPlayerIsDead = true;
+	UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
 
-	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
+	APlayerController* PC = Cast<APlayerController>(GetController());
 
+	if (PC)
+	{
+		PC->bShowMouseCursor = true;
+		PC->bEnableClickEvents = true;
+		PC->bEnableMouseOverEvents = true;
+	}
+
+}
+
+void ABatteryManPlayer::TimeLevel()
+{
+	CurrentTime--;
+	if (CurrentTime == 0) {
+		Instance->bPlayerIsDead = false;
+		UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
+
+		APlayerController* PC = Cast<APlayerController>(GetController());
+
+		if (PC)
+		{
+			PC->bShowMouseCursor = true;
+			PC->bEnableClickEvents = true;
+			PC->bEnableMouseOverEvents = true;
+		}
+	}
+	else {
+		FString TheFloatStr = FString::SanitizeFloat(CurrentTime);
+		GEngine->AddOnScreenDebugMessage(-1, 1.0, FColor::Red, *TheFloatStr);
+	}
 }

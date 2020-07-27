@@ -2,7 +2,9 @@
 
 
 #include "BatteryMan_GameMode.h"
+#include "BatteryManPlayer.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 
 ABatteryMan_GameMode::ABatteryMan_GameMode() {
 
