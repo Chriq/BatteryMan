@@ -18,5 +18,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bPlayerIsDead = false;
+
+	int Levels_Complete = 0;
+
+	const int NUM_LEVELS = 2;
 	
 };

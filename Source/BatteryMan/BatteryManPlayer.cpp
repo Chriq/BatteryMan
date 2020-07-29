@@ -3,6 +3,7 @@
 
 #include "BatteryManPlayer.h"
 #include "BatteryMan_GameInstance.h"
+#include "DamageArea.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"		//for restarting game
@@ -138,15 +139,28 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComponent, int OtherBodyIndex, 
 	bool bFromSweep, const FHitResult & SweepResult)
 {
+	AActor* HitActor;
 
-	power += 10.0f;
+	HitActor = Cast<ADamageArea>(OtherActor);
 
-	if (power > 100.0f) {
-		power = 100.0f;
+	if (HitActor) {
+		power = 0.0f;
+		bDead = true;
+		GetMesh()->SetSimulatePhysics(true);
+
+		FTimerHandle OnDeathHandle;
+		GetWorldTimerManager().SetTimer(
+			OnDeathHandle, this, &ABatteryManPlayer::RestartGame, 3.0f, false);
 	}
+	else {
+		power += 10.0f;
 
-	OtherActor->Destroy();
+		if (power > 100.0f) {
+			power = 100.0f;
+		}
 
+		OtherActor->Destroy();
+	}
 }
 
 void ABatteryManPlayer::RestartGame()
@@ -169,20 +183,25 @@ void ABatteryManPlayer::TimeLevel()
 {
 	CurrentTime--;
 	if (CurrentTime == 0) {
-		Instance->bPlayerIsDead = false;
-		UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
+		Instance->Levels_Complete++;
 
-		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (Instance->Levels_Complete < Instance->NUM_LEVELS) {
 
-		if (PC)
-		{
-			PC->bShowMouseCursor = true;
-			PC->bEnableClickEvents = true;
-			PC->bEnableMouseOverEvents = true;
+			FName Level_Name = FName(TEXT("Level_" + FString::FromInt(++Instance->Levels_Complete)));
+
+			UGameplayStatics::OpenLevel(this, Level_Name, false);
 		}
-	}
-	else {
-		FString TheFloatStr = FString::SanitizeFloat(CurrentTime);
-		GEngine->AddOnScreenDebugMessage(-1, 1.0, FColor::Red, *TheFloatStr);
+		else{
+			UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
+
+			APlayerController* PC = Cast<APlayerController>(GetController());
+
+			if (PC)
+			{
+				PC->bShowMouseCursor = true;
+				PC->bEnableClickEvents = true;
+				PC->bEnableMouseOverEvents = true;
+			}
+		}
 	}
 }
