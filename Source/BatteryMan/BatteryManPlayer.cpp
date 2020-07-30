@@ -4,6 +4,7 @@
 #include "BatteryManPlayer.h"
 #include "BatteryMan_GameInstance.h"
 #include "DamageArea.h"
+#include "Item.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"		//for restarting game
@@ -139,11 +140,18 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 	AActor* OtherActor, UPrimitiveComponent* OtherComponent, int OtherBodyIndex, 
 	bool bFromSweep, const FHitResult & SweepResult)
 {
-	AActor* HitActor;
+	if(OtherActor->ActorHasTag(TEXT("Item"))){
+		AItem* HitActor = Cast<AItem>(OtherActor);
+		power += HitActor->Power;
 
-	HitActor = Cast<ADamageArea>(OtherActor);
+		if (power > 100.0f) {
+			power = 100.0f;
+		}
 
-	if (HitActor) {
+		OtherActor->Destroy();
+	}
+	
+	else if (OtherActor->ActorHasTag(TEXT("Damage"))) {
 		power = 0.0f;
 		bDead = true;
 		GetMesh()->SetSimulatePhysics(true);
@@ -152,15 +160,7 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 		GetWorldTimerManager().SetTimer(
 			OnDeathHandle, this, &ABatteryManPlayer::RestartGame, 3.0f, false);
 	}
-	else {
-		power += 10.0f;
 
-		if (power > 100.0f) {
-			power = 100.0f;
-		}
-
-		OtherActor->Destroy();
-	}
 }
 
 void ABatteryManPlayer::RestartGame()

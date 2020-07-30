@@ -10,6 +10,8 @@
  * 
  */
 
+class AItem;
+
 UCLASS()
 class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 {
@@ -21,7 +23,13 @@ class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<APawn> PlayerRecharge;
+	TArray<TSubclassOf<AItem>> PlayerRecharge;
+
+	AItem* Item_Spawned;
+
+	int NUM_ITEMS = 2;
+
+	int Total_Spawn_Weights = 0;
 
 	float Spawn_Z = 500.0f;
 
