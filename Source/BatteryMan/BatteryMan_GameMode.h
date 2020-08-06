@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+#include "Item.h"
 #include "BatteryMan_GameMode.generated.h"
 
 /**
  * 
  */
-
-class AItem;
 
 UCLASS()
 class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
@@ -25,13 +24,9 @@ class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<AItem>> PlayerRecharge;
 
-	AItem* Item_Spawned;
-
-	int NUM_ITEMS = 2;
+	int NUM_ITEMS = 3;
 
 	int Total_Spawn_Weights = 0;
-
-	float Spawn_Z = 500.0f;
 
 	UPROPERTY(EditAnywhere)
 	float Spawn_X_Min;
@@ -44,6 +39,12 @@ class BATTERYMAN_API ABatteryMan_GameMode : public AGameMode
 
 	UPROPERTY(EditAnywhere)
 	float Spawn_Y_Max;
+
+	UPROPERTY(EditAnywhere)
+	float Spawn_Z_Min;
+
+	UPROPERTY(EditAnywhere)
+	float Spawn_Z_Max;
 
 	void SpawnPlayerRecharge();
 

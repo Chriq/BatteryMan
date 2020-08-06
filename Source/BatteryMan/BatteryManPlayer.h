@@ -18,6 +18,7 @@
 #include "BatteryManPlayer.generated.h"
 
 class UBatteryMan_GameInstance;
+class AItem;
 
 UCLASS()
 class BATTERYMAN_API ABatteryManPlayer : public ACharacter
@@ -55,17 +56,35 @@ public:
 	TSubclassOf<UUserWidget> Player_Power_Widget_Class;
 	UUserWidget* Player_Power_Widget;
 
+	UPROPERTY(EditAnywhere, Category = "HUD")
+	TSubclassOf<UUserWidget> Inventory_Widget_Class;
+	UUserWidget* Inventory_Widget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TArray<AItem*> Inventory_Space;
+
+	UFUNCTION(BlueprintPure)
+	bool Add_Item_To_Inventory(AItem* Item);
+
+	UFUNCTION(BlueprintPure)
+	UTexture2D* GetThumbnailAtSlot(int32 Slot);
+
 	UPROPERTY(EditAnywhere)
-		float LevelTime;
+	float LevelTime;
 
 	UPROPERTY(BlueprintReadOnly)
-		float CurrentTime;
+	float CurrentTime;
 
 	void RestartGame();
 
 	void TimeLevel();	
 
+	bool InventoryToggled = false;
+	void toggleInventory();
+
 	UBatteryMan_GameInstance* Instance;
+
+	int32 INVENTORY_SIZE = 15;
 
 protected:
 	// Called when the game starts or when spawned

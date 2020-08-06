@@ -16,14 +16,13 @@ public:
 	AItem();
 
 	UPROPERTY(EditAnywhere)
-	bool Inventoriable;
-
-	UPROPERTY(EditAnywhere)
 	float Power;
 
-	// Must be between 0 and 1
 	UPROPERTY(EditAnywhere)
 	int Spawn_Weight;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UTexture2D* Thumbnail;
 
 protected:
 	// Called when the game starts or when spawned

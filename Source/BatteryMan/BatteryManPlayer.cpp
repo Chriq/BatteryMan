@@ -57,6 +57,15 @@ void ABatteryManPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+	if (PC)
+	{
+		PC->bShowMouseCursor = false;
+		PC->bEnableClickEvents = false;
+		PC->bEnableMouseOverEvents = false;
+	}
+
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABatteryManPlayer::onBeginOverlap);
 	
 	Player_Power_Widget = CreateWidget(GetWorld(), Player_Power_Widget_Class);
@@ -68,6 +77,8 @@ void ABatteryManPlayer::BeginPlay()
 
 	LevelTime = 60;
 	CurrentTime = LevelTime;
+
+	Inventory_Space.SetNum(15);
 
 }
 
@@ -105,6 +116,9 @@ void ABatteryManPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+
+	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ABatteryManPlayer::toggleInventory);
 }
 
 void ABatteryManPlayer::moveForward(float axis)
@@ -161,6 +175,36 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 			OnDeathHandle, this, &ABatteryManPlayer::RestartGame, 3.0f, false);
 	}
 
+	else if (OtherActor->ActorHasTag("Inventory")) {
+		AItem* HitActor = Cast<AItem>(OtherActor);
+
+		Add_Item_To_Inventory(HitActor);
+
+		OtherActor->Destroy();
+	}
+
+}
+
+bool ABatteryManPlayer::Add_Item_To_Inventory(AItem* Item)
+{
+	if (Item) {
+		const int32 Available_Slot = Inventory_Space.Find(nullptr);
+
+		if (Available_Slot != INDEX_NONE) {
+			Inventory_Space[Available_Slot] = Item;
+			UE_LOG(LogTemp, Warning, TEXT("ItemAdded"));
+			return true;
+		}
+	}
+	return false;
+}
+
+UTexture2D* ABatteryManPlayer::GetThumbnailAtSlot(int32 Slot)
+{
+	if (Inventory_Space[Slot]) {
+		return Inventory_Space[Slot]->Thumbnail;
+	}
+	else return nullptr;
 }
 
 void ABatteryManPlayer::RestartGame()
@@ -168,7 +212,7 @@ void ABatteryManPlayer::RestartGame()
 	Instance->bPlayerIsDead = true;
 	UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
 
-	APlayerController* PC = Cast<APlayerController>(GetController());
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 
 	if (PC)
 	{
@@ -194,7 +238,7 @@ void ABatteryManPlayer::TimeLevel()
 		else{
 			UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
 
-			APlayerController* PC = Cast<APlayerController>(GetController());
+			APlayerController* PC = GetWorld()->GetFirstPlayerController();
 
 			if (PC)
 			{
@@ -203,5 +247,20 @@ void ABatteryManPlayer::TimeLevel()
 				PC->bEnableMouseOverEvents = true;
 			}
 		}
+	}
+}
+
+void ABatteryManPlayer::toggleInventory()
+{
+	if (InventoryToggled) {
+		if (Inventory_Widget) {
+			Inventory_Widget->RemoveFromParent();
+			InventoryToggled = false;
+		}
+	}
+	else {
+		Inventory_Widget = CreateWidget(GetWorld(), Inventory_Widget_Class);
+		Inventory_Widget->AddToViewport();
+		InventoryToggled = true;
 	}
 }

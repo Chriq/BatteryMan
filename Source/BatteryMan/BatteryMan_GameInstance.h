@@ -21,6 +21,6 @@ public:
 
 	int Levels_Complete = 0;
 
-	const int NUM_LEVELS = 2;
+	const int NUM_LEVELS = 3;
 	
 };
