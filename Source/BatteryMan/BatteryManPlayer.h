@@ -20,12 +20,16 @@
 class UBatteryMan_GameInstance;
 class AItem;
 
+
 UCLASS()
 class BATTERYMAN_API ABatteryManPlayer : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
+
+	/**Setup**/
+
 	// Sets default values for this character's properties
 	ABatteryManPlayer();
 
@@ -39,6 +43,17 @@ public:
 	void moveForward(float axis);
 	void moveRight(float axis);
 
+	UFUNCTION()
+	void onBeginOverlap(class UPrimitiveComponent* HitComp,
+		class AActor* OtherActor, class UPrimitiveComponent* OtherComponent,
+		int OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	UBatteryMan_GameInstance* Instance;
+
+
+
+	/**Player Properties**/
+
 	bool bDead;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
@@ -47,27 +62,21 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Item")
 	float powerThreshold;
 
-	UFUNCTION()
-	void onBeginOverlap(class UPrimitiveComponent* HitComp,
-			class AActor* OtherActor, class UPrimitiveComponent* OtherComponent,
-			int OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
-
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TSubclassOf<UUserWidget> Player_Power_Widget_Class;
 	UUserWidget* Player_Power_Widget;
+	
+	UFUNCTION()
+	void Run();
 
-	UPROPERTY(EditAnywhere, Category = "HUD")
-	TSubclassOf<UUserWidget> Inventory_Widget_Class;
-	UUserWidget* Inventory_Widget;
+	UFUNCTION()
+	void StopRunning();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<AItem*> Inventory_Space;
+	bool bIsRunning;
 
-	UFUNCTION(BlueprintPure)
-	bool Add_Item_To_Inventory(AItem* Item);
 
-	UFUNCTION(BlueprintPure)
-	UTexture2D* GetThumbnailAtSlot(int32 Slot);
+
+	/**Timing**/
 
 	UPROPERTY(EditAnywhere)
 	float LevelTime;
@@ -78,13 +87,7 @@ public:
 	void RestartGame();
 
 	void TimeLevel();	
-
-	bool InventoryToggled = false;
-	void toggleInventory();
-
-	UBatteryMan_GameInstance* Instance;
-
-	int32 INVENTORY_SIZE = 15;
+	
 
 protected:
 	// Called when the game starts or when spawned
@@ -98,3 +101,5 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };
+
+

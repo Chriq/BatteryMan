@@ -3,6 +3,7 @@
 
 #include "BatteryMan_GameMode.h"
 #include "BatteryManPlayer.h"
+#include "BatteryMan_PlayerController.h"
 #include "Item.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
@@ -70,12 +71,10 @@ void ABatteryMan_GameMode::SpawnPlayerRecharge() {
 
 	// Spawn AItem actor from the array based on index found above
 	// TODO: Need to figure out, hard coding probabilities for now
-	if (Rand <= 7.0f)
+	if (Rand <= 8.0f)
 		GetWorld()->SpawnActor<AItem>(PlayerRecharge[0], SpawnPosition, SpawnRotation);
-	else if (Rand > 7.0f && Rand <= 8.5f)
+	else if (Rand > 8.0f && Rand <= 9.5f)
 		GetWorld()->SpawnActor<AItem>(PlayerRecharge[1], SpawnPosition, SpawnRotation);
-	else if (Rand > 8.5f && Rand <= 9.5f)
-		GetWorld()->SpawnActor<AItem>(PlayerRecharge[3], SpawnPosition, SpawnRotation);
 	else
 		GetWorld()->SpawnActor<AItem>(PlayerRecharge[2], SpawnPosition, SpawnRotation);
 }

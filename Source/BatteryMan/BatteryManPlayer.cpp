@@ -3,11 +3,13 @@
 
 #include "BatteryManPlayer.h"
 #include "BatteryMan_GameInstance.h"
+#include "BatteryMan_PlayerController.h"
 #include "DamageArea.h"
 #include "Item.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"		//for restarting game
+
 
 // Sets default values
 ABatteryManPlayer::ABatteryManPlayer()
@@ -48,6 +50,7 @@ ABatteryManPlayer::ABatteryManPlayer()
 	Instance = Cast<UBatteryMan_GameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	bDead = false;
+	bIsRunning = false;
 	power = 100.0f;
 
 }
@@ -57,14 +60,11 @@ void ABatteryManPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-
-	if (PC)
-	{
-		PC->bShowMouseCursor = false;
-		PC->bEnableClickEvents = false;
-		PC->bEnableMouseOverEvents = false;
+	ABatteryMan_PlayerController* PC = Cast<ABatteryMan_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(),0));
+	if (PC) {
+		PC->ToggleMouseCursor(false);
 	}
+
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ABatteryManPlayer::onBeginOverlap);
 	
@@ -75,10 +75,7 @@ void ABatteryManPlayer::BeginPlay()
 	GetWorldTimerManager().SetTimer(
 		LevelTimeHandle, this, &ABatteryManPlayer::TimeLevel, 1.0f, true);
 
-	LevelTime = 60;
 	CurrentTime = LevelTime;
-
-	Inventory_Space.SetNum(15);
 
 }
 
@@ -86,9 +83,9 @@ void ABatteryManPlayer::BeginPlay()
 void ABatteryManPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	power -= DeltaTime * powerThreshold;
-
+	/*
+	
+	*/
 	if (power <= 0) {
 		if (!bDead) {
 			bDead = true;
@@ -101,6 +98,11 @@ void ABatteryManPlayer::Tick(float DeltaTime)
 		}
 	}
 
+	if (bIsRunning) {
+		power -= DeltaTime * 3 * powerThreshold;
+	} else {
+		power -= DeltaTime * powerThreshold;
+	}
 }
 
 // Called to bind functionality to input
@@ -117,8 +119,9 @@ void ABatteryManPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &ABatteryManPlayer::Run);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &ABatteryManPlayer::StopRunning);
 
-	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ABatteryManPlayer::toggleInventory);
 }
 
 void ABatteryManPlayer::moveForward(float axis)
@@ -175,36 +178,18 @@ void ABatteryManPlayer::onBeginOverlap(UPrimitiveComponent* HitComp,
 			OnDeathHandle, this, &ABatteryManPlayer::RestartGame, 3.0f, false);
 	}
 
-	else if (OtherActor->ActorHasTag("Inventory")) {
-		AItem* HitActor = Cast<AItem>(OtherActor);
-
-		Add_Item_To_Inventory(HitActor);
-
-		OtherActor->Destroy();
-	}
-
 }
 
-bool ABatteryManPlayer::Add_Item_To_Inventory(AItem* Item)
+void ABatteryManPlayer::Run()
 {
-	if (Item) {
-		const int32 Available_Slot = Inventory_Space.Find(nullptr);
-
-		if (Available_Slot != INDEX_NONE) {
-			Inventory_Space[Available_Slot] = Item;
-			UE_LOG(LogTemp, Warning, TEXT("ItemAdded"));
-			return true;
-		}
-	}
-	return false;
+	GetCharacterMovement()->MaxWalkSpeed = 600;
+	bIsRunning = true;
 }
 
-UTexture2D* ABatteryManPlayer::GetThumbnailAtSlot(int32 Slot)
+void ABatteryManPlayer::StopRunning()
 {
-	if (Inventory_Space[Slot]) {
-		return Inventory_Space[Slot]->Thumbnail;
-	}
-	else return nullptr;
+	GetCharacterMovement()->MaxWalkSpeed = 375;
+	bIsRunning = false;
 }
 
 void ABatteryManPlayer::RestartGame()
@@ -212,44 +197,40 @@ void ABatteryManPlayer::RestartGame()
 	Instance->bPlayerIsDead = true;
 	UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-
-	if (PC)
-	{
-		PC->bShowMouseCursor = true;
-		PC->bEnableClickEvents = true;
-		PC->bEnableMouseOverEvents = true;
+	ABatteryMan_PlayerController* PC = Cast<ABatteryMan_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	if (PC) {
+		PC->ToggleMouseCursor(true);
 	}
-
 }
 
 void ABatteryManPlayer::TimeLevel()
 {
 	CurrentTime--;
 	if (CurrentTime == 0) {
-		Instance->Levels_Complete++;
 
-		if (Instance->Levels_Complete < Instance->NUM_LEVELS) {
+		//SaveInventory();
+		Instance->Levels_To_Open++;
 
-			FName Level_Name = FName(TEXT("Level_" + FString::FromInt(++Instance->Levels_Complete)));
+		if (Instance->Levels_To_Open <= Instance->NUM_LEVELS) {
 
+			FName Level_Name = FName(TEXT("Level_" + FString::FromInt(Instance->Levels_To_Open)));
 			UGameplayStatics::OpenLevel(this, Level_Name, false);
+
 		}
 		else{
+
 			UGameplayStatics::OpenLevel(this, FName(TEXT("EndMap")), false);
 
-			APlayerController* PC = GetWorld()->GetFirstPlayerController();
-
-			if (PC)
-			{
-				PC->bShowMouseCursor = true;
-				PC->bEnableClickEvents = true;
-				PC->bEnableMouseOverEvents = true;
+			ABatteryMan_PlayerController* PC = Cast<ABatteryMan_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+			if (PC) {
+				PC->ToggleMouseCursor(true);
 			}
+
 		}
 	}
 }
 
+/* Maybe make a pause screen
 void ABatteryManPlayer::toggleInventory()
 {
 	if (InventoryToggled) {
@@ -264,3 +245,4 @@ void ABatteryManPlayer::toggleInventory()
 		InventoryToggled = true;
 	}
 }
+*/

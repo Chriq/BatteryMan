@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+class AItem;
+
 UCLASS()
 class BATTERYMAN_API UBatteryMan_GameInstance : public UGameInstance
 {
@@ -19,8 +22,11 @@ public:
 	UPROPERTY(BlueprintReadOnly)
 	bool bPlayerIsDead = false;
 
-	int Levels_Complete = 0;
+	int32 Levels_To_Open = 1;
 
-	const int NUM_LEVELS = 3;
+	const int32 NUM_LEVELS = 4;
+
+	UFUNCTION(BlueprintCallable)
+	void ResetGame();
 	
 };
